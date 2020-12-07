@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Activity.LoginActivity"
+    android:paddingHorizontal="100dp"
+    android:background="@color/blue_grey">
+
+    <TextView
+        android:id="@+id/registerLbl"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/loginPageLabel"
+        android:textColor="@color/purple_200"
+        android:textSize="35sp"
+        android:textStyle="bold|italic"
+        android:layout_above="@+id/loginUsernameTxt"
+        android:layout_centerHorizontal="true"/>
+
+    <EditText
+        android:id="@+id/loginUsernameTxt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_marginTop="5dp"
+        android:hint="@string/loginUsernameTextFieldHint"
+        android:inputType="textNoSuggestions" />
+
+
+    <EditText
+        android:id="@+id/loginPasswordTxt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/loginUsernameTxt"
+        android:layout_centerVertical="true"
+        android:layout_marginTop="4dp"
+        android:hint="@string/loginPasswordTextFieldHint"
+        android:inputType="textPassword" />
+
+    <Button
+        android:id="@+id/loginBtn"
+        android:layout_width="215dp"
+        android:layout_height="59dp"
+        android:layout_below="@id/loginPasswordTxt"
+        android:layout_marginTop="63dp"
+        android:background="@color/purple_200"
+        android:text="@string/loginButtonText" />
+
+</RelativeLayout>
