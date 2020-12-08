@@ -4,11 +4,9 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -21,14 +19,15 @@ import com.accountingsystem_android.Response.CategoryResponse;
 import com.accountingsystem_android.Response.UserResponse;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener{
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    UserResponse userResponse;
+    UserResponse currentUser;
     List<UserResponse> allUsers;
     List<CategoryResponse> rootCategories;
     ListView allUsersListView;
@@ -53,14 +52,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         allUsersListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                startActivity( new Intent(getApplicationContext(), UserReviewActivity.class).putExtra("userData", allUsers.get(position)));
+                startActivity(new Intent(getApplicationContext(), UserReviewActivity.class).putExtra("userData", allUsers.get(position)));
             }
         });
 
         rootCategoriesListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                startActivity( new Intent(getApplicationContext(), CategoryReviewActivity.class).putExtra("categoryData", rootCategories.get(position)));
+                startActivity(new Intent(getApplicationContext(), CategoryReviewActivity.class).putExtra("categoryData", rootCategories.get(position)));
             }
         });
     }
@@ -74,6 +73,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 rootCategories = response.body();
 
+                if (!currentUser.getUserType().equals("ADMIN")) {
+                    rootCategories = filterOutUnaccessibleCategories(rootCategories);
+                }
                 CategoryAdapter categoryAdapter = new CategoryAdapter(getApplicationContext(), rootCategories);
 
                 rootCategoriesListView.setAdapter(categoryAdapter);
@@ -86,6 +88,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
+    private List<CategoryResponse> filterOutUnaccessibleCategories(List<CategoryResponse> categories) {
+
+        return categories.stream().filter(category -> {
+            for (UserResponse user : category.getResponsibleUsers()) {
+                if (user.getUserID() == currentUser.getUserID()) return true;
+            }
+            return false;
+        }).collect(Collectors.toList());
+    }
+
     private void setUsers() {
         Call<List<UserResponse>> call = ApiClient.getUserService().getUsers();
 
@@ -93,6 +105,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onResponse(Call<List<UserResponse>> call, Response<List<UserResponse>> response) {
                 allUsers = response.body();
+
+                if(!currentUser.getUserType().equals("ADMIN"))
+                {
+                    allUsers = filterOutOtherUsers(allUsers);
+                }
 
                 UserAdapter userAdapter = new UserAdapter(getApplicationContext(), allUsers);
 
@@ -106,12 +123,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
+    private List<UserResponse> filterOutOtherUsers(List<UserResponse> allUsers) {
+        return allUsers.stream().filter(user -> user.getUserID() == currentUser.getUserID()).collect(Collectors.toList());
+    }
+
     private void setCurrentUser() {
         Intent intent = getIntent();
         if (intent.getExtras() != null) {
-            userResponse = (UserResponse) intent.getSerializableExtra("userData");
+            currentUser = (UserResponse) intent.getSerializableExtra("userData");
 
-            Log.e("TAG", " ---> " + userResponse.getName());
+            Log.e("TAG", " ---> " + currentUser.getName());
         }
     }
 
@@ -119,7 +140,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.refreshBtn:
-                startActivity(new Intent(MainActivity.this, MainActivity.class).putExtra("userData", userResponse));
+                startActivity(new Intent(MainActivity.this, MainActivity.class).putExtra("userData", currentUser));
                 break;
 
             default:
